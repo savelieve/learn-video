@@ -1,14 +1,14 @@
 {
-  "name": "claude-video",
+  "name": "learn-video",
   "interface": {
-    "displayName": "watch"
+    "displayName": "Learn Video"
   },
   "plugins": [
     {
-      "name": "watch",
+      "name": "learn-video",
       "source": {
         "source": "url",
-        "url": "https://github.com/bradautomates/claude-video.git"
+        "url": "https://github.com/savelieve/learn-video.git"
       },
       "policy": {
         "installation": "AVAILABLE",

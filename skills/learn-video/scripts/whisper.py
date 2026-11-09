@@ -191,7 +191,7 @@ def _post_whisper(endpoint: str, api_key: str, model: str, audio_path: Path) -> 
         # Groq sits behind Cloudflare — the default `Python-urllib/3.x` UA
         # trips WAF rule 1010 (403) before auth even runs. Any non-default
         # UA clears it; we identify honestly.
-        "User-Agent": "watch-skill/1.0 (+claude-code; python-urllib)",
+        "User-Agent": "learn-video-skill/0.1.0 (+claude-code; python-urllib)",
     }
 
     context = ssl.create_default_context()
@@ -222,7 +222,7 @@ def _post_whisper(endpoint: str, api_key: str, model: str, audio_path: Path) -> 
 
             if attempt < MAX_ATTEMPTS - 1:
                 print(
-                    f"[watch] whisper HTTP {exc.code} — retrying in {delay:.1f}s "
+                    f"[learn-video] whisper HTTP {exc.code} — retrying in {delay:.1f}s "
                     f"(attempt {attempt + 2}/{MAX_ATTEMPTS})",
                     file=sys.stderr,
                 )
@@ -233,7 +233,7 @@ def _post_whisper(endpoint: str, api_key: str, model: str, audio_path: Path) -> 
             if attempt < MAX_ATTEMPTS - 1:
                 delay = RETRY_BASE_DELAY * (attempt + 1)
                 print(
-                    f"[watch] whisper network error ({type(exc).__name__}: {exc}) — "
+                    f"[learn-video] whisper network error ({type(exc).__name__}: {exc}) — "
                     f"retrying in {delay:.1f}s (attempt {attempt + 2}/{MAX_ATTEMPTS})",
                     file=sys.stderr,
                 )
@@ -317,13 +317,13 @@ def transcribe_chunks(
             end = chunks[index + 1][1] if index + 1 < len(chunks) else None
             segments.gaps.append({"start": offset, "end": end})
             print(
-                f"[watch] chunk {index + 1}/{len(chunks)} failed — skipping ({exc})",
+                f"[learn-video] chunk {index + 1}/{len(chunks)} failed — skipping ({exc})",
                 file=sys.stderr,
             )
             continue
         segments.extend(shift_segments(chunk_segments, offset))
         print(
-            f"[watch] chunk {index + 1}/{len(chunks)} → {len(chunk_segments)} segments",
+            f"[learn-video] chunk {index + 1}/{len(chunks)} → {len(chunk_segments)} segments",
             file=sys.stderr,
         )
 
@@ -373,11 +373,11 @@ def transcribe_video(
         setup_py = Path(__file__).resolve().parent / "setup.py"
         raise SystemExit(
             "No Whisper API key available. Set GROQ_API_KEY (preferred) or OPENAI_API_KEY "
-            "in the environment or in ~/.config/watch/.env. "
+            "in the environment or in ~/.config/learn-video/.env. "
             f"Run `python3 {setup_py}` to configure."
         )
 
-    print(f"[watch] extracting audio for Whisper ({backend})…", file=sys.stderr)
+    print(f"[learn-video] extracting audio for Whisper ({backend})…", file=sys.stderr)
     audio_path = extract_audio(video_path, audio_out)
     audio_bytes = audio_path.stat().st_size
 
@@ -386,7 +386,7 @@ def transcribe_video(
 
     if audio_bytes <= MAX_UPLOAD_BYTES:
         print(
-            f"[watch] audio: {audio_bytes / 1024:.0f} kB — uploading to {backend} Whisper…",
+            f"[learn-video] audio: {audio_bytes / 1024:.0f} kB — uploading to {backend} Whisper…",
             file=sys.stderr,
         )
         segments = transcribe_one(audio_path)
@@ -394,7 +394,7 @@ def transcribe_video(
         duration = audio_duration(audio_path)
         plan = plan_chunks(duration, audio_bytes, MAX_UPLOAD_BYTES - 64_000)
         print(
-            f"[watch] audio: {audio_bytes / (1024 * 1024):.0f} MB exceeds "
+            f"[learn-video] audio: {audio_bytes / (1024 * 1024):.0f} MB exceeds "
             f"{MAX_UPLOAD_BYTES // (1024 * 1024)} MB — splitting into {len(plan)} chunks…",
             file=sys.stderr,
         )
@@ -404,9 +404,9 @@ def transcribe_video(
         segments = transcribe_chunks(chunks, transcribe_one)
 
     if not segments:
-        print("[watch] Whisper detected no speech", file=sys.stderr)
+        print("[learn-video] Whisper detected no speech", file=sys.stderr)
 
-    print(f"[watch] transcribed {len(segments)} segments via {backend}", file=sys.stderr)
+    print(f"[learn-video] transcribed {len(segments)} segments via {backend}", file=sys.stderr)
     return segments, backend
 
 

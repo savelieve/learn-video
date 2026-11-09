@@ -630,7 +630,7 @@ def extract_keyframes(
     if result.returncode != 0:
         if files:
             raise SystemExit(f"ffmpeg keyframe extraction failed after partial output: {diagnostic(result.stderr)}")
-        print(f"[watch] no keyframe candidates; trying normal decoding. {diagnostic(result.stderr, 700)}", file=sys.stderr)
+        print(f"[learn-video] no keyframe candidates; trying normal decoding. {diagnostic(result.stderr, 700)}", file=sys.stderr)
     candidates = _emitted_frames(files, result.stderr, start_seconds or 0.0, "keyframe")
 
     # Too few keyframes → uniform fallback over the same range.

@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 # Make the bundled scripts importable (mirrors watch.py's sys.path insert).
-SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "skills" / "watch" / "scripts"
+SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "skills" / "learn-video" / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 
@@ -21,7 +21,7 @@ def isolated_user(monkeypatch, tmp_path):
     home.mkdir()
     cwd.mkdir()
     for key in list(os.environ):
-        if key.startswith("WATCH_") or key in {
+        if key.startswith("LEARN_VIDEO_") or key in {
             "GROQ_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "SETUP_COMPLETE", "XDG_CONFIG_HOME",
         }:
             monkeypatch.delenv(key)
@@ -30,7 +30,7 @@ def isolated_user(monkeypatch, tmp_path):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(home / ".config"))
     monkeypatch.chdir(cwd)
     import config
-    monkeypatch.setattr(config, "CONFIG_DIR", home / ".config" / "watch")
+    monkeypatch.setattr(config, "CONFIG_DIR", home / ".config" / "learn-video")
     monkeypatch.setattr(config, "CONFIG_FILE", config.CONFIG_DIR / ".env")
     if "setup" in sys.modules:
         monkeypatch.setattr(sys.modules["setup"], "CONFIG_DIR", config.CONFIG_DIR)

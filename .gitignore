@@ -18,3 +18,8 @@ htmlcov/
 # planning docs (local only)
 docs/superpowers/
 /V[0-9]*_*.md
+
+# Credentials and test cache
+.env
+.env.*
+.pytest_cache/

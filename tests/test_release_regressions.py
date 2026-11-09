@@ -13,13 +13,13 @@ from conftest import build_static_clip
 
 @pytest.mark.parametrize('encoding', ['utf-8-sig', 'utf-16', 'utf-16-be'])
 def test_config_bom_quotes_and_last_assignment(tmp_path, encoding):
-    body = '# comment\r\nWATCH_DETAIL=balanced\r\nWATCH_DETAIL="efficient" # note\r\n'
+    body = '# comment\r\nLEARN_VIDEO_DETAIL=balanced\r\nLEARN_VIDEO_DETAIL="efficient" # note\r\n'
     data = body.encode(encoding)
     if encoding == 'utf-16-be':
         data = b'\xfe\xff' + data
     path = tmp_path / '.env'
     path.write_bytes(data)
-    assert config.read_env_file(path)['WATCH_DETAIL'] == 'efficient'
+    assert config.read_env_file(path)['LEARN_VIDEO_DETAIL'] == 'efficient'
 
 
 def test_uniform_capped_full_range(tmp_path):

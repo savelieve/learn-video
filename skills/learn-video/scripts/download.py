@@ -158,7 +158,7 @@ def fetch_captions(url: str, out_dir: Path, *, sub_lang='auto', cookies_file=Non
         result['subtitle_path'] = str(subtitle)
     except SystemExit as exc:
         result['errors'].append(str(exc))
-        print(f'[watch] captions unavailable: {exc}', file=sys.stderr)
+        print(f'[learn-video] captions unavailable: {exc}', file=sys.stderr)
     return result
 
 

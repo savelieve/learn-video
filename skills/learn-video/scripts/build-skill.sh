@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# build-skill.sh — package the watch skill as a claude.ai-upload-ready .skill file.
-# Usage: bash skills/watch/scripts/build-skill.sh   (run from anywhere)
+# build-skill.sh — package the self-contained learn-video skill as a .skill file.
+# Usage: bash skills/learn-video/scripts/build-skill.sh   (run from anywhere)
 #
-# Produces dist/watch.skill, a zip with a single top-level `watch/` directory
-# containing SKILL.md and the scripts/ runtime from skills/watch. Archiving the
-# skills/watch subtree directly keeps the bundle to exactly one SKILL.md and
+# Produces dist/learn-video.skill, a zip with a single top-level `learn-video/` directory
+# containing SKILL.md and the scripts/ runtime from skills/learn-video. Archiving the
+# skills/learn-video subtree directly keeps the bundle to exactly one SKILL.md and
 # well under claude.ai's 200-file cap, with no post-hoc `zip -d` stripping.
 set -euo pipefail
 
@@ -17,15 +17,15 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
 fi
 
 mkdir -p dist
-OUT="dist/watch.skill"
-git archive --format=zip --prefix=watch/ --output="$OUT" HEAD:skills/watch
+OUT="dist/learn-video.skill"
+git archive --format=zip --prefix=learn-video/ --output="$OUT" HEAD:skills/learn-video
 
 COUNT=$(unzip -l "$OUT" | tail -1 | awk '{print $2}')
 SIZE=$(du -h "$OUT" | cut -f1)
 
 if [ "$COUNT" -gt 200 ]; then
   echo "error: $COUNT files in zip, claude.ai's cap is 200" >&2
-  echo "       trim the skills/watch/ tree or add a .gitattributes export-ignore entry" >&2
+  echo "       trim the skills/learn-video/ tree or add a .gitattributes export-ignore entry" >&2
   exit 1
 fi
 
@@ -36,4 +36,4 @@ if [ "$SKILL_MD_COUNT" -ne 1 ]; then
 fi
 
 echo "built $OUT ($COUNT files, $SIZE)"
-echo "upload via the claude.ai skill UI"
+echo "install using a host that supports local Agent Skills runtimes"

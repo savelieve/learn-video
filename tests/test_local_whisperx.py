@@ -20,7 +20,7 @@ def fake_whisperx(tmp_path):
     script.write_text('''import json, os, pathlib, sys, time
 if '--help' in sys.argv:
     print('--no_align --model'); sys.exit(0)
-mode = os.environ.get('WATCH_TEST_MODE', 'good')
+mode = os.environ.get('LEARN_VIDEO_TEST_MODE', 'good')
 if mode == 'slow': time.sleep(10)
 if mode == 'crash':
     sys.stderr.buffer.write(b'CUDA out of memory\\xff'); sys.exit(1)
@@ -43,7 +43,7 @@ path.write_text(json.dumps({'segments': segments, 'language': 'en'}))
         exe.write_text(f'#!{sys.executable}\n' + script.read_text())
         exe.chmod(0o755)
     (root / '.deps-ok').write_text('3.8.6')
-    config.write_settings({'WATCH_WHISPERX_BIN': str(exe), 'WATCH_WHISPER_BACKEND': 'whisperx'})
+    config.write_settings({'LEARN_VIDEO_WHISPERX_BIN': str(exe), 'LEARN_VIDEO_WHISPER_BACKEND': 'whisperx'})
     audio = tmp_path / 'audio with spaces.mp3'
     audio.write_bytes(b'audio')
     return exe, audio
@@ -56,21 +56,21 @@ def test_local_child_normalizes_segments_and_ignores_language(fake_whisperx):
 
 
 def test_empty_is_no_speech(fake_whisperx, monkeypatch):
-    monkeypatch.setenv('WATCH_TEST_MODE', 'empty')
+    monkeypatch.setenv('LEARN_VIDEO_TEST_MODE', 'empty')
     segments = local_whisperx.transcribe_audio(fake_whisperx[1])
     assert not segments and segments.no_speech
 
 
 @pytest.mark.parametrize('mode,message', [('malformed', 'malformed'), ('missing', 'missing'), ('crash', 'Memory or device'), ('offline', 'Model download')])
 def test_local_failure_categories(fake_whisperx, monkeypatch, mode, message):
-    monkeypatch.setenv('WATCH_TEST_MODE', mode)
+    monkeypatch.setenv('LEARN_VIDEO_TEST_MODE', mode)
     with pytest.raises(SystemExit, match=message):
         local_whisperx.transcribe_audio(fake_whisperx[1])
 
 
 def test_timeout_kills_child_and_cleans_output(fake_whisperx, monkeypatch):
-    monkeypatch.setenv('WATCH_TEST_MODE', 'slow')
-    monkeypatch.setenv('WATCH_WHISPERX_TIMEOUT', '0.2')
+    monkeypatch.setenv('LEARN_VIDEO_TEST_MODE', 'slow')
+    monkeypatch.setenv('LEARN_VIDEO_WHISPERX_TIMEOUT', '0.2')
     with pytest.raises(SystemExit, match='timed out'):
         local_whisperx.transcribe_audio(fake_whisperx[1])
     assert not list(fake_whisperx[1].parent.glob('watch-whisperx-*'))
@@ -93,8 +93,8 @@ def test_local_route_never_resolves_a_cloud_key(fake_whisperx, monkeypatch):
     assert whisper.transcribe_video('video.mp4', audio, backend='whisperx')[1] == 'whisperx'
 
 
-@pytest.mark.parametrize('key,value', [('WATCH_WHISPERX_TIMEOUT', 'nan'), ('WATCH_WHISPERX_BATCH_SIZE', '1.5'),
-                                     ('WATCH_WHISPERX_DEVICE', 'mps'), ('WATCH_WHISPERX_LANGUAGE', 'english')])
+@pytest.mark.parametrize('key,value', [('LEARN_VIDEO_WHISPERX_TIMEOUT', 'nan'), ('LEARN_VIDEO_WHISPERX_BATCH_SIZE', '1.5'),
+                                     ('LEARN_VIDEO_WHISPERX_DEVICE', 'mps'), ('LEARN_VIDEO_WHISPERX_LANGUAGE', 'english')])
 def test_invalid_local_settings(monkeypatch, key, value):
     monkeypatch.setenv(key, value)
     with pytest.raises(config.ConfigError):
@@ -103,7 +103,7 @@ def test_invalid_local_settings(monkeypatch, key, value):
 
 def test_installer_rebuilds_partial_and_is_idempotent(monkeypatch):
     commands = []
-    venv = Path.home() / '.cache/watch/whisperx-venv'
+    venv = Path.home() / '.cache/learn-video/whisperx-venv'
     venv.mkdir(parents=True)
     (venv / 'half-built').write_text('partial')
     monkeypatch.setattr(setup, '_ensure_uv', lambda: '/fake/uv')
@@ -131,7 +131,7 @@ def test_installer_rebuilds_partial_and_is_idempotent(monkeypatch):
 
 
 def test_failed_warmup_never_marks_ready(monkeypatch):
-    venv = Path.home() / '.cache/watch/whisperx-venv'
+    venv = Path.home() / '.cache/learn-video/whisperx-venv'
     (venv / 'bin').mkdir(parents=True)
     for name in ['python', 'whisperx']:
         (venv / 'bin' / name).touch()
@@ -150,7 +150,7 @@ def test_failed_warmup_never_marks_ready(monkeypatch):
 
 
 def test_cancellation_stops_the_process(fake_whisperx, monkeypatch):
-    monkeypatch.setenv('WATCH_TEST_MODE', 'slow')
+    monkeypatch.setenv('LEARN_VIDEO_TEST_MODE', 'slow')
     original_get = local_whisperx.queue.Queue.get
     interrupted = False
     def interrupt_once(self, *args, **kwargs):
@@ -169,7 +169,7 @@ def test_cancellation_stops_the_process(fake_whisperx, monkeypatch):
 def test_cpu_installer_recipe_keeps_torch_out_of_cuda_index(monkeypatch, system):
     import subprocess
     commands = []
-    venv = Path.home() / '.cache/watch/whisperx-venv'
+    venv = Path.home() / '.cache/learn-video/whisperx-venv'
     monkeypatch.setattr(setup.platform, 'system', lambda: system)
     monkeypatch.setattr(setup, '_ensure_uv', lambda: '/fake/uv')
     monkeypatch.setattr(setup, '_which', lambda name: '/fake/' + name)

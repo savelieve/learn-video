@@ -6,12 +6,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-WATCH = Path(__file__).resolve().parent.parent / "skills" / "watch" / "scripts" / "watch.py"
+WATCH = Path(__file__).resolve().parent.parent / "skills" / "learn-video" / "scripts" / "watch.py"
 
 
 def _run(clip: Path, *args: str, env_extra: dict | None = None) -> str:
     env = dict(os.environ)
-    env.pop("WATCH_DETAIL", None)
+    env.pop("LEARN_VIDEO_DETAIL", None)
     if env_extra:
         env.update(env_extra)
     proc = subprocess.run(
@@ -46,12 +46,12 @@ def test_transcript_skips_frames(cut_clip: Path):
 
 
 def test_flag_overrides_env(cut_clip: Path):
-    out = _run(cut_clip, "--detail", "efficient", env_extra={"WATCH_DETAIL": "balanced"})
+    out = _run(cut_clip, "--detail", "efficient", env_extra={"LEARN_VIDEO_DETAIL": "balanced"})
     assert "(keyframe" in out
 
 
 def test_default_is_balanced(cut_clip: Path):
-    out = _run(cut_clip)  # no flag, WATCH_DETAIL cleared
+    out = _run(cut_clip)  # no flag, LEARN_VIDEO_DETAIL cleared
     assert "**Detail:** balanced" in out
     assert "(scene" in out
 
@@ -149,7 +149,7 @@ def test_partial_report_includes_missing_intervals(monkeypatch, capsys):
 
 def test_no_whisper_disables_configured_local_backend(monkeypatch):
     _mock_audio(monkeypatch)
-    monkeypatch.setenv('WATCH_WHISPER_BACKEND', 'whisperx')
+    monkeypatch.setenv('LEARN_VIDEO_WHISPER_BACKEND', 'whisperx')
     monkeypatch.setattr(watch, 'transcribe_video', lambda *a, **kw: pytest.fail('fallback disabled'))
     monkeypatch.setattr(sys, 'argv', ['watch', 'video.mp4', '--detail', 'transcript', '--no-whisper'])
     assert watch.main() == 0
@@ -185,7 +185,7 @@ def test_user_out_dir_and_local_source_preserved(static_clip, tmp_path):
 
 def test_cli_no_whisper_overrides_invalid_saved_backend(monkeypatch):
     _mock_audio(monkeypatch)
-    monkeypatch.setenv('WATCH_WHISPER_BACKEND', 'invalid-old-preference')
+    monkeypatch.setenv('LEARN_VIDEO_WHISPER_BACKEND', 'invalid-old-preference')
     monkeypatch.setattr(sys, 'argv', ['watch', 'video.mp4', '--detail', 'transcript', '--no-whisper'])
     assert watch.main() == 0
 

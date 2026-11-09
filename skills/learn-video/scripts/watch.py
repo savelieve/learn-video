@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""/watch entry point: download video, extract frames, parse transcript.
+"""/learn-video entry point: download video, extract frames, parse transcript.
 
 Prints a markdown report to stdout listing frame paths + transcript. Claude
 then Reads each frame path to see the video.
@@ -45,14 +45,14 @@ def run_gemini(args, config, key, start_sec, end_sec, auth) -> int:
                 parent.mkdir(parents=True, exist_ok=True)
             sent = "not sent to Google"
             work = Path(tempfile.mkdtemp(prefix="watch-", dir=parent))
-            print("[watch] downloading media…" if is_url(args.source) else "[watch] using local file…", file=sys.stderr)
+            print("[learn-video] downloading media…" if is_url(args.source) else "[learn-video] using local file…", file=sys.stderr)
             media = download(args.source, work / "download", **(auth if is_url(args.source) else {}))
             sent = "upload to Google failed"
-            print("[watch] uploading to the Gemini Files API…", file=sys.stderr)
+            print("[learn-video] uploading to the Gemini Files API…", file=sys.stderr)
             uploaded = gemini.upload_file(Path(media["video_path"]), key)
             video = {"uri": uploaded["uri"], "mime_type": uploaded["mime_type"]}
             sent = "video uploaded to Google, deleted after the answer"
-        print(f"[watch] asking {config['gemini_model']}…", file=sys.stderr)
+        print(f"[learn-video] asking {config['gemini_model']}…", file=sys.stderr)
         result = gemini.ask(video, args.question, model=config["gemini_model"], key=key,
                             clip=clip, timeout=config["gemini_timeout"])
     except SystemExit as exc:
@@ -169,7 +169,7 @@ def main() -> int:
     if parent:
         parent.mkdir(parents=True, exist_ok=True)
     work = Path(tempfile.mkdtemp(prefix="watch-", dir=parent))
-    print(f"[watch] working dir: {work}", file=sys.stderr)
+    print(f"[learn-video] working dir: {work}", file=sys.stderr)
     url_source = is_url(args.source)
     dl = {"subtitle_path": None, "info": {}, "downloaded": False}
     errors = []
@@ -181,7 +181,7 @@ def main() -> int:
     gaps = []
 
     if url_source:
-        print("[watch] checking metadata/captions via yt-dlp…", file=sys.stderr)
+        print("[learn-video] checking metadata/captions via yt-dlp…", file=sys.stderr)
         dl = fetch_captions(args.source, work / "download", sub_lang=args.sub_lang or config["sub_lang"], **auth)
         errors.extend(dl.get("errors", []))
         if dl.get("subtitle_path"):
@@ -199,7 +199,7 @@ def main() -> int:
     need_media = not (audio_only and (track_available or backend_choice == "none") and url_source)
     if need_media:
         try:
-            print("[watch] downloading media…" if url_source else "[watch] using local file…", file=sys.stderr)
+            print("[learn-video] downloading media…" if url_source else "[learn-video] using local file…", file=sys.stderr)
             media = download(args.source, work / "download", audio_only=audio_only,
                              **({"context": dl, **auth} if url_source else {}))
             dl.update(media)
@@ -292,7 +292,7 @@ def main() -> int:
     if track_available:
         transcript_state = "available" if transcript_segments else ("no speech in selected range" if focused and all_segments else "no speech")
     for error in errors:
-        print(f"[watch] {error}", file=sys.stderr)
+        print(f"[learn-video] {error}", file=sys.stderr)
 
     info = dl.get("info") or {}
 

@@ -1,29 +1,40 @@
-"""WATCH_DETAIL resolution and frame_cap mapping."""
+"""LEARN_VIDEO_DETAIL resolution and frame_cap mapping."""
 from __future__ import annotations
 
 import config
 
 
 def test_default_detail_is_balanced(monkeypatch, tmp_path):
-    monkeypatch.delenv("WATCH_DETAIL", raising=False)
+    monkeypatch.delenv("LEARN_VIDEO_DETAIL", raising=False)
     monkeypatch.setattr(config, "CONFIG_FILE", tmp_path / "missing.env")
     assert config.get_config()["detail"] == "balanced"
 
 
 def test_env_overrides_detail(monkeypatch, tmp_path):
-    monkeypatch.setenv("WATCH_DETAIL", "efficient")
+    monkeypatch.setenv("LEARN_VIDEO_DETAIL", "efficient")
     monkeypatch.setattr(config, "CONFIG_FILE", tmp_path / "missing.env")
     assert config.get_config()["detail"] == "efficient"
 
 
+def test_upstream_watch_settings_do_not_configure_learn_video(monkeypatch, tmp_path):
+    monkeypatch.setenv('WATCH_DETAIL', 'token-burner')
+    monkeypatch.setenv('WATCH_ENGINE', 'gemini')
+    monkeypatch.setattr(config, 'CONFIG_FILE', tmp_path / 'missing.env')
+    cfg = config.get_config()
+    assert cfg['detail'] == 'balanced'
+    assert cfg['engine'] == 'auto'
+    monkeypatch.setenv('LEARN_VIDEO_DETAIL', 'efficient')
+    assert config.get_config()['detail'] == 'efficient'
+
+
 def test_invalid_detail_falls_back_to_default(monkeypatch, tmp_path):
-    monkeypatch.setenv("WATCH_DETAIL", "bogus")
+    monkeypatch.setenv("LEARN_VIDEO_DETAIL", "bogus")
     monkeypatch.setattr(config, "CONFIG_FILE", tmp_path / "missing.env")
     assert config.get_config()["detail"] == "balanced"
 
 
 def test_get_config_keys(monkeypatch, tmp_path):
-    monkeypatch.delenv("WATCH_DETAIL", raising=False)
+    monkeypatch.delenv("LEARN_VIDEO_DETAIL", raising=False)
     monkeypatch.setattr(config, "CONFIG_FILE", tmp_path / "missing.env")
     cfg = config.get_config()
     assert {"detail", "config_file", "whisper_backend", "whisperx_model", "sub_lang"} <= set(cfg)
@@ -110,10 +121,10 @@ def test_explicit_gemini_without_key_is_a_safe_error():
 
 
 def test_invalid_engine_and_timeout_rejected(monkeypatch):
-    monkeypatch.setenv('WATCH_ENGINE', 'vertex')
-    with pytest.raises(config.ConfigError, match='WATCH_ENGINE'):
+    monkeypatch.setenv('LEARN_VIDEO_ENGINE', 'vertex')
+    with pytest.raises(config.ConfigError, match='LEARN_VIDEO_ENGINE'):
         config.get_config()
-    monkeypatch.setenv('WATCH_ENGINE', 'auto')
-    monkeypatch.setenv('WATCH_GEMINI_TIMEOUT', '-5')
-    with pytest.raises(config.ConfigError, match='WATCH_GEMINI_TIMEOUT'):
+    monkeypatch.setenv('LEARN_VIDEO_ENGINE', 'auto')
+    monkeypatch.setenv('LEARN_VIDEO_GEMINI_TIMEOUT', '-5')
+    with pytest.raises(config.ConfigError, match='LEARN_VIDEO_GEMINI_TIMEOUT'):
         config.get_config()

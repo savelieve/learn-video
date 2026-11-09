@@ -20,7 +20,7 @@ def test_json_reports_watch_detail(monkeypatch, capsys):
 
 
 def test_keyless_completed_setup_proceeds_silently(capsys):
-    config.write_settings({'SETUP_COMPLETE': 'true', 'WATCH_WHISPER_BACKEND': 'none'})
+    config.write_settings({'SETUP_COMPLETE': 'true', 'LEARN_VIDEO_WHISPER_BACKEND': 'none'})
     assert setup.cmd_check() == 0
     assert capsys.readouterr() == ('', '')
     assert setup._status()['status'] == 'ready'
@@ -95,7 +95,7 @@ def test_permission_diagnostics(monkeypatch, tmp_path, capsys, system, mode, war
 
 
 def test_check_never_launches_whisperx(monkeypatch):
-    config.write_settings({'WATCH_WHISPER_BACKEND': 'whisperx'})
+    config.write_settings({'LEARN_VIDEO_WHISPER_BACKEND': 'whisperx'})
     monkeypatch.setattr(setup, '_probe', lambda *a: pytest.fail('check must be lightweight'))
     assert setup.cmd_check() == 0
 
@@ -133,7 +133,7 @@ def test_engine_gemini_without_key_writes_choice_and_asks_for_key(monkeypatch, c
     assert setup.cmd_install(engine='gemini') == 3
     assert 'GEMINI_API_KEY' in capsys.readouterr().err
     values = config.read_env_file(config.CONFIG_FILE)
-    assert values['WATCH_ENGINE'] == 'gemini' and values.get('SETUP_COMPLETE') != 'true'
+    assert values['LEARN_VIDEO_ENGINE'] == 'gemini' and values.get('SETUP_COMPLETE') != 'true'
 
 
 def test_engine_gemini_with_key_completes_setup_and_preserves_lines(monkeypatch):
@@ -144,4 +144,4 @@ def test_engine_gemini_with_key_completes_setup_and_preserves_lines(monkeypatch)
     text = config.CONFIG_FILE.read_text()
     assert '# my notes' in text and 'GROQ_API_KEY=keep-me' in text
     values = config.read_env_file(config.CONFIG_FILE)
-    assert values['WATCH_ENGINE'] == 'gemini' and values['SETUP_COMPLETE'] == 'true'
+    assert values['LEARN_VIDEO_ENGINE'] == 'gemini' and values['SETUP_COMPLETE'] == 'true'

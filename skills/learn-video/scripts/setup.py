@@ -19,11 +19,11 @@ from runtime import configure_stdio, diagnostic, run_text
 REQUIRED_BINARIES = ['ffmpeg', 'ffprobe', 'yt-dlp']
 WHISPERX_VERSION = '3.8.6'
 _PERM_WARNED: set[str] = set()
-ENV_TEMPLATE = '''# /watch configuration. No shell interpolation; last assignment wins.
+ENV_TEMPLATE = '''# /learn-video configuration. No shell interpolation; last assignment wins.
 # Native captions always come first. Optional fallback: auto|whisperx|groq|openai|none.
 # auto preserves the Groq-then-OpenAI preference for existing installations.
-# The first-run skill wizard sets WATCH_DETAIL and WATCH_WHISPER_BACKEND.
-# WATCH_ENGINE=auto|gemini|local. auto uses Gemini when GEMINI_API_KEY is set.
+# The first-run skill wizard sets LEARN_VIDEO_DETAIL and LEARN_VIDEO_WHISPER_BACKEND.
+# LEARN_VIDEO_ENGINE=auto|gemini|local. auto uses Gemini when GEMINI_API_KEY is set.
 # With the gemini engine, local videos are uploaded to Google for analysis.
 GEMINI_API_KEY=
 GROQ_API_KEY=
@@ -46,7 +46,7 @@ def _check_file_permissions(path: Path) -> None:
     try:
         if path.stat().st_mode & 0o044:
             _PERM_WARNED.add(str(path))
-            print(f'[watch] WARNING: {path} is readable by other users. Run: chmod 600 "{path}"', file=sys.stderr)
+            print(f'[learn-video] WARNING: {path} is readable by other users. Run: chmod 600 "{path}"', file=sys.stderr)
     except OSError:
         pass
 
@@ -187,7 +187,7 @@ def cmd_check():
     status = _status()
     if status['can_proceed']:
         return 0
-    print(f"[watch] Missing {', '.join(status['missing_binaries'])}. Run python3 \"{Path(__file__).resolve()}\".", file=sys.stderr)
+    print(f"[learn-video] Missing {', '.join(status['missing_binaries'])}. Run python3 \"{Path(__file__).resolve()}\".", file=sys.stderr)
     return 2
 
 
@@ -199,7 +199,7 @@ def cmd_json():
 def cmd_install(backend=None, detail=None, engine=None):
     if engine:
         _scaffold_env()
-        write_settings({'WATCH_ENGINE': engine}, CONFIG_FILE)
+        write_settings({'LEARN_VIDEO_ENGINE': engine}, CONFIG_FILE)
     if engine == 'gemini':
         if not load_gemini_key():
             print(f'[setup] Add GEMINI_API_KEY privately to {CONFIG_FILE} (free key: https://aistudio.google.com/apikey), '
@@ -223,11 +223,11 @@ def cmd_install(backend=None, detail=None, engine=None):
             return 2
     _scaffold_env()
     if detail:
-        write_settings({'WATCH_DETAIL': detail}, CONFIG_FILE)
+        write_settings({'LEARN_VIDEO_DETAIL': detail}, CONFIG_FILE)
     if backend == 'whisperx':
         return install_whisperx()
     if backend:
-        write_settings({'WATCH_WHISPER_BACKEND': backend}, CONFIG_FILE)
+        write_settings({'LEARN_VIDEO_WHISPER_BACKEND': backend}, CONFIG_FILE)
         if backend in ('groq', 'openai') and not load_api_key(backend)[1]:
             print(f'[setup] Base watch is ready. Add {backend.upper()}_API_KEY privately to {CONFIG_FILE}, then rerun --backend {backend}.', file=sys.stderr)
             return 3
@@ -274,7 +274,7 @@ def install_whisperx():
     # Check the existing config before downloading or modifying an environment.
     _scaffold_env()
     uv = _ensure_uv()
-    venv = Path.home() / '.cache' / 'watch' / 'whisperx-venv'
+    venv = Path.home() / '.cache' / 'learn-video' / 'whisperx-venv'
     sentinel = venv / '.deps-ok'
     windows = platform.system() == 'Windows'
     python = venv / ('Scripts/python.exe' if windows else 'bin/python')
@@ -306,8 +306,8 @@ def install_whisperx():
     (venv / 'watch-install.json').write_text(json.dumps({'whisperx': WHISPERX_VERSION, 'model': cfg['whisperx_model'],
                                                        'platform': platform.system(), 'packages': packages}, indent=2), encoding='utf-8')
     sentinel.write_text(WHISPERX_VERSION + '\n', encoding='utf-8')
-    write_settings({'WATCH_WHISPER_BACKEND': 'whisperx', 'WATCH_WHISPERX_BIN': str(executable),
-                    'WATCH_WHISPERX_MODEL': cfg['whisperx_model'], 'SETUP_COMPLETE': 'true'}, CONFIG_FILE)
+    write_settings({'LEARN_VIDEO_WHISPER_BACKEND': 'whisperx', 'LEARN_VIDEO_WHISPERX_BIN': str(executable),
+                    'LEARN_VIDEO_WHISPERX_MODEL': cfg['whisperx_model'], 'SETUP_COMPLETE': 'true'}, CONFIG_FILE)
     print('[setup] WhisperX is ready; packages and both model caches are warmed.', file=sys.stderr)
     return 0
 

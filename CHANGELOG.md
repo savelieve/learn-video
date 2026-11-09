@@ -1,3 +1,15 @@
+# Learn Video changes
+
+## 0.1.0
+
+- Adapt Watch as the independently maintained `learn-video` skill and plugin.
+- Separate settings and managed environment paths; use `LEARN_VIDEO_*` configuration.
+- Update packaging, installation links, and tests; retain upstream MIT attribution and history.
+
+---
+
+The following is the original upstream changelog; its names and links are historical.
+
 # Changelog
 
 All notable changes to `/watch` are documented here.

@@ -8,7 +8,7 @@ import re
 import tempfile
 from pathlib import Path
 
-CONFIG_DIR = Path.home() / '.config' / 'watch'
+CONFIG_DIR = Path.home() / '.config' / 'learn-video'
 CONFIG_FILE = CONFIG_DIR / '.env'
 DEFAULT_DETAIL = 'balanced'
 DETAILS = {'transcript', 'efficient', 'balanced', 'token-burner'}
@@ -122,7 +122,7 @@ def load_gemini_key() -> str | None:
 
 def resolve_engine(choice: str, has_key: bool) -> str:
     if choice not in ENGINES:
-        raise ConfigError('WATCH_ENGINE must be auto, gemini, or local.')
+        raise ConfigError('LEARN_VIDEO_ENGINE must be auto, gemini, or local.')
     if choice == 'gemini' and not has_key:
         raise ConfigError('The gemini engine needs GEMINI_API_KEY in the environment or '
                           f'{CONFIG_FILE}. Add it, or rerun with --engine local.')
@@ -133,30 +133,30 @@ def get_config(*, backend_override: str | None = None) -> dict:
     file_values = read_env_file()
     def setting(name, default=''):
         return os.environ.get(name, file_values.get(name, default)).strip()
-    detail = setting('WATCH_DETAIL', DEFAULT_DETAIL)
-    backend = backend_override if backend_override is not None else setting('WATCH_WHISPER_BACKEND', 'auto')
+    detail = setting('LEARN_VIDEO_DETAIL', DEFAULT_DETAIL)
+    backend = backend_override if backend_override is not None else setting('LEARN_VIDEO_WHISPER_BACKEND', 'auto')
     if backend not in BACKENDS:
-        raise ConfigError('WATCH_WHISPER_BACKEND must be auto, groq, openai, whisperx, or none.')
-    engine = setting('WATCH_ENGINE', 'auto')
+        raise ConfigError('LEARN_VIDEO_WHISPER_BACKEND must be auto, groq, openai, whisperx, or none.')
+    engine = setting('LEARN_VIDEO_ENGINE', 'auto')
     if engine not in ENGINES:
-        raise ConfigError('WATCH_ENGINE must be auto, gemini, or local.')
+        raise ConfigError('LEARN_VIDEO_ENGINE must be auto, gemini, or local.')
     return {
         'detail': detail if detail in DETAILS else DEFAULT_DETAIL,
         'config_file': str(CONFIG_FILE),
         'whisper_backend': backend,
         'engine': engine,
-        'gemini_model': setting('WATCH_GEMINI_MODEL', DEFAULT_GEMINI_MODEL) or DEFAULT_GEMINI_MODEL,
-        'gemini_timeout': positive_number(setting('WATCH_GEMINI_TIMEOUT', '600'), 'WATCH_GEMINI_TIMEOUT'),
-        'sub_lang': setting('WATCH_SUB_LANG', 'auto'),
-        'cookies_file': setting('WATCH_COOKIES_FILE'),
-        'cookies_from_browser': setting('WATCH_COOKIES_FROM_BROWSER'),
-        'whisperx_bin': setting('WATCH_WHISPERX_BIN'),
-        'whisperx_model': setting('WATCH_WHISPERX_MODEL', 'small'),
-        'whisperx_device': setting('WATCH_WHISPERX_DEVICE', 'cpu'),
-        'whisperx_compute_type': setting('WATCH_WHISPERX_COMPUTE_TYPE', 'int8'),
-        'whisperx_batch_size': setting('WATCH_WHISPERX_BATCH_SIZE', '8'),
-        'whisperx_language': setting('WATCH_WHISPERX_LANGUAGE'),
-        'whisperx_timeout': setting('WATCH_WHISPERX_TIMEOUT'),
+        'gemini_model': setting('LEARN_VIDEO_GEMINI_MODEL', DEFAULT_GEMINI_MODEL) or DEFAULT_GEMINI_MODEL,
+        'gemini_timeout': positive_number(setting('LEARN_VIDEO_GEMINI_TIMEOUT', '600'), 'LEARN_VIDEO_GEMINI_TIMEOUT'),
+        'sub_lang': setting('LEARN_VIDEO_SUB_LANG', 'auto'),
+        'cookies_file': setting('LEARN_VIDEO_COOKIES_FILE'),
+        'cookies_from_browser': setting('LEARN_VIDEO_COOKIES_FROM_BROWSER'),
+        'whisperx_bin': setting('LEARN_VIDEO_WHISPERX_BIN'),
+        'whisperx_model': setting('LEARN_VIDEO_WHISPERX_MODEL', 'small'),
+        'whisperx_device': setting('LEARN_VIDEO_WHISPERX_DEVICE', 'cpu'),
+        'whisperx_compute_type': setting('LEARN_VIDEO_WHISPERX_COMPUTE_TYPE', 'int8'),
+        'whisperx_batch_size': setting('LEARN_VIDEO_WHISPERX_BATCH_SIZE', '8'),
+        'whisperx_language': setting('LEARN_VIDEO_WHISPERX_LANGUAGE'),
+        'whisperx_timeout': setting('LEARN_VIDEO_WHISPERX_TIMEOUT'),
     }
 
 

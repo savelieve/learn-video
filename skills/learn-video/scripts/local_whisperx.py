@@ -23,18 +23,18 @@ MODELS = {'tiny', 'base', 'small', 'medium', 'large', 'large-v1', 'large-v2', 'l
 def settings(cfg=None) -> dict:
     cfg = dict(get_config(backend_override='whisperx') if cfg is None else cfg)
     if cfg['whisperx_model'] not in MODELS:
-        raise ConfigError('WATCH_WHISPERX_MODEL must be a supported Whisper model name (default small).')
+        raise ConfigError('LEARN_VIDEO_WHISPERX_MODEL must be a supported Whisper model name (default small).')
     if cfg['whisperx_device'] not in ('cpu', 'cuda'):
-        raise ConfigError('WATCH_WHISPERX_DEVICE must be cpu or cuda (CUDA is untested).')
+        raise ConfigError('LEARN_VIDEO_WHISPERX_DEVICE must be cpu or cuda (CUDA is untested).')
     if cfg['whisperx_compute_type'] not in ('default', 'int8', 'float16', 'float32'):
-        raise ConfigError('WATCH_WHISPERX_COMPUTE_TYPE must be default, int8, float16, or float32.')
-    batch = positive_number(cfg['whisperx_batch_size'], 'WATCH_WHISPERX_BATCH_SIZE')
+        raise ConfigError('LEARN_VIDEO_WHISPERX_COMPUTE_TYPE must be default, int8, float16, or float32.')
+    batch = positive_number(cfg['whisperx_batch_size'], 'LEARN_VIDEO_WHISPERX_BATCH_SIZE')
     if batch != int(batch):
-        raise ConfigError('WATCH_WHISPERX_BATCH_SIZE must be a positive integer.')
+        raise ConfigError('LEARN_VIDEO_WHISPERX_BATCH_SIZE must be a positive integer.')
     cfg['whisperx_batch_size'] = int(batch)
-    cfg['whisperx_timeout'] = positive_number(cfg['whisperx_timeout'], 'WATCH_WHISPERX_TIMEOUT') if cfg['whisperx_timeout'] else None
+    cfg['whisperx_timeout'] = positive_number(cfg['whisperx_timeout'], 'LEARN_VIDEO_WHISPERX_TIMEOUT') if cfg['whisperx_timeout'] else None
     if cfg['whisperx_language'] and not re.fullmatch('[a-z]{2}', cfg['whisperx_language']):
-        raise ConfigError('WATCH_WHISPERX_LANGUAGE must be a two-letter lowercase code.')
+        raise ConfigError('LEARN_VIDEO_WHISPERX_LANGUAGE must be a two-letter lowercase code.')
     return cfg
 
 
@@ -103,7 +103,7 @@ def run_inference(cmd: list[str], timeout: float | None = None) -> None:
     except (TimeoutError, subprocess.TimeoutExpired):
         process.kill()
         process.wait()
-        raise SystemExit('WhisperX timed out and was stopped. Increase WATCH_WHISPERX_TIMEOUT or leave it unset.') from None
+        raise SystemExit('WhisperX timed out and was stopped. Increase LEARN_VIDEO_WHISPERX_TIMEOUT or leave it unset.') from None
     except KeyboardInterrupt:
         process.kill()
         process.wait()
@@ -132,7 +132,7 @@ def run_inference(cmd: list[str], timeout: float | None = None) -> None:
 def transcribe_audio(audio: Path, cfg=None, *, require_ready=True):
     cfg = settings(cfg)
     executable = executable_path(cfg, require_ready=require_ready)
-    print(f"[watch] local WhisperX {cfg['whisperx_model']} transcription; CPU runs may take several minutes.", file=sys.stderr, flush=True)
+    print(f"[learn-video] local WhisperX {cfg['whisperx_model']} transcription; CPU runs may take several minutes.", file=sys.stderr, flush=True)
     with tempfile.TemporaryDirectory(prefix='watch-whisperx-', dir=audio.parent) as temporary:
         output = Path(temporary)
         run_inference(command(executable, audio, output, cfg), cfg['whisperx_timeout'])
@@ -143,5 +143,5 @@ def transcribe_audio(audio: Path, cfg=None, *, require_ready=True):
             raise SystemExit(f'WhisperX output missing or malformed ({type(exc).__name__}).') from None
     # 3.8.6 overwrites JSON language with alignment language even with --no_align.
     if segments.no_speech:
-        print('[watch] WhisperX detected no speech.', file=sys.stderr)
+        print('[learn-video] WhisperX detected no speech.', file=sys.stderr)
     return segments
